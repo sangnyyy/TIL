@@ -10,4 +10,4 @@
 * [Mockito](https://github.com/sangnyyy/TIL/blob/master/TDD/Mockito.md)
 
 ### 테스트도구
-* [Locust](https://github.com/sangnyyy/TIL/blob/master/%ED%85%8C%EC%8A%A4%ED%8A%B8%EB%8F%84%EA%B5%AC/locust.md)
+* [Locust](https://github.com/sangnyyy/TIL/blob/master/%ED%85%8C%EC%8A%A4%ED%8A%B8%EB%8F%84%EA%B5%AC/Locust.md)
