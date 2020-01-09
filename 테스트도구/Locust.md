@@ -137,3 +137,26 @@ class User(Locust):
 5. TaskSet on_stop
 6. TaskSet teardown
 7. Locust teardown
+
+### 성공 여부 수동제어
+
+응답코드가 실패한 결과에 대해서도 성공으로 간주할 수 있도록 하는 방법이다.
+
+404에러에 대한 예시
+```python
+with self.client.get("/does_not_exist/", catch_response=True) as response:
+    if response.status_code == 404:
+        response.success()
+```
+
+반대로 성공한 경우에도 실패로 바꿀 수 있다.
+
+```python
+with self.client.get("/", catch_response=True) as response:
+    if response.content != b"Success":
+        response.failure("Got wrong response")
+```
+
+### Oauth 인증을 통한 실제 사용 사례
+
+https://dejavuqa.tistory.com/131
