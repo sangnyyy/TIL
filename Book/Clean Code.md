@@ -14,3 +14,22 @@
 * 우리는 작가들이다
     * 실제로 읽기와 쓰기에 걸리는 시간은 9:1 정도
     * 읽기 쉽게 작성하자!
+
+## 2. 의미 있는 이름
+* 의도를 밝혀라
+  * 독자가 사전지식이 없음애도 의미를 파악할 수 있어야한다.
+```java
+List<Integer> list1 = new ArrayList<>();    //bad
+List<Integer> flaggedCells = new ArrayList<>();     //good
+```
+
+* 의미있게 구분하라
+  * Info, Data 이런거 붙이지 말자.
+  * ex) Account, AccountInfo (이들이 혼재할 경우 역할을 구분하기 어렵다 ㅠㅠ)
+* 발음하기 쉬운 이름을 사용하자
+* 클래스 이름
+  * 명사 혹은 명사구
+  * Data, Info 등은 지양하자
+* 메서드 이름
+  * 동사 혹은 동사구
+  
