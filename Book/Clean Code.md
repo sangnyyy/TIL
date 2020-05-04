@@ -144,3 +144,7 @@ public Money calculatePay(Employee e) throws InvalidEmployeeType {
 
 ## Chapter 10 - 클래스
 * 클래스는 작아야한다.
+  * 클래스의 책임을 기술해보자. 작명 시 간결한 이름이 떠오르지 않는다면, 클래스 책임이 너무 많아서 그렇다.
+    * ex) Manager, Processor, Super 등 ..
+* 응집도
+  * 응집도가 높다 = 메서드와 변수가 서로 의존핳며 논리적인 단위로 묶인다.
