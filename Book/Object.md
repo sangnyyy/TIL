@@ -160,3 +160,93 @@
   * 객체는 여러역할을 할 수 있지만, 특정 협력안에서는 하나의 역할만을 한다.
     * ex) 배우는 연극에서 오직 하나의 배역을 연기한다.
   * 협력, 역할, 객체, 클래스의 관게
+
+## Chapter 04 - 설계품질과 트레이드오프
+* 캡슐화 위반1
+  ```java
+  public class Movie{
+    
+    private Money fee;
+    
+    public Money getMoney(){
+      return this.fee;
+    }
+
+    public void setMoney(Money fee){
+      this.fee = fee;
+    }
+
+  }
+  ```
+  * Getter와 Setter에 의해 fee라는 직접적으로 접근하는 것과 별반 차이가 없다.
+  * 인스턴스 변수가 존재한다는 사실을 퍼블릭 인터페이스에 노골적으로 드러낸다.
+* 설계품질 판단의 3가지 척도
+  * 캡슐화
+  * 응집도
+  * 결합도
+* 응집도
+  * 모듈에 포함된 요소들이 연관되어 있는 정도
+  * 객체지향에서는 객체 또는 클래스에 얼마나 관련 높은 책일을 할당했는지의 정도
+  * 요구사항의 변경 수용을 위해 하나 이상의 클래스를 수정해야 한다면 낮은 응집도를 갖는 증거이다.
+* 결합도
+  * 다른 모듈에 대해 얼마나 많은 지식을 갖고 있는지 척도
+  * 객체지향 관점에서 협력에 필요한 적절한 수준의 관계만을 유지하는지를 의미한다.
+* 좋은 설계란
+  * 오늘의 기능을 수행하며, 내일의 변경을 수행할 수 있는것
+  * 여기서, 좋은 설계는 책임 주도 설계이며, 데이터 주도 설계는 좋지 못한 설계!
+* 캡슐화 위반2
+  ```java
+  public class DiscountCondition{
+
+    ...
+
+    public boolean isDiscountable(DayOfWeek dayOfWeek, LocalTime time) { ... }
+  
+  }
+  ```
+  * DiscountCondition 클래스 속성의 변경이 일어난다면?
+    * isDiscountable 메서드의 파라미터를 수정하고, 해당 메서드를 사용하는 클라이언트들 모두 수정해야 할 것
+  ```java
+  public class Movie{
+    public Money calculateAmountDiscountedFee() { ... }
+    public Money calculatePercentDiscountedFee() { ... }
+    public Money calculateNoneDiscountedFee() { ... }
+  }
+  ```
+  * 위 3메서드는 내부 구현을 인터페이스에 노출
+  * 만약 할인정책 추가 및 제거 시 의존하는 모든 클라이언트가 영향을 받을 것
+* 높은 결합도
+  ```java
+  public class Movie{
+    public boolean isDiscountable(LocalDateTime whenScreened, int sequence){
+      for(DiscountCondition condition : discountConditions) {
+        if(condition.getType() == DiscountConditionType.PERIOD) {
+          if (condition.isDiscountable(whenScreened.getDayOfWeek(), whenScreened.ToLocalTime())) {
+            return true;
+          }
+        }else {
+          if (condition.isDiscountable(sequence)){
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+  }
+  ```
+  * DiscountCondition의 기간 할인 조건의 명칭이 PERIOD에서 다른 명칭으로 바뀐다면?
+    * Movie를 수정해야한다.
+  * DiscountCondition의 종류가 추가되거나 삭제된다면?
+    * if ~ else 문을 수정해야 한다.
+  * DiscountCondition의 isDiscountable의 파라미터가 변경된다면? 
+    * Movie의 isDiscountable의 메서드 시그니처가 바뀌게된다. 또한 결과적으로 Screening 클래스 또한 변경되어야 할 것!
+* 낮은 응집도
+  * 하나의 변경을 위해 코드 여러곳을 변경한다면 설계의 응집도가 낮다는 증거
+  * DiscountCondition의 isDiscountable이 변경되면 Movie, Screening 까지 변경되기에 응집도가 낮다고 할 수 있다.
+* 데이터 중심 설계의 문제점
+  * 이 모오오오오오든 것이 데이터 중심 설계 때문이다.
+  * 너무 이른 시기에 데이터에 대해 결정한다.
+  * 협력이라는 문맥을 고려하지 않아 객체를 고립시킨다.
+    * 협력 안에서 객체의 퍼블릭 인터페이스를 억지로 끼워 맞추게 된다.
+  * 데이터에 관한 지식이 인터페이스에 고스란히 드러나게 된다.
+  * 결론적으로, 캡슐화가 꺠지고 응집도가 낮아지며 결합도가 높아지는 현상을 초래한다.
