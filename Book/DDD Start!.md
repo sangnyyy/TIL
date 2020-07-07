@@ -136,3 +136,72 @@
         private ArticleContent articleContent;
     }
     ```
+    
+## Chapter 05 - 리포지터리와 조회 기능
+생략
+
+## Chapter 06 - 응용 서비스와 표현 영역
+
+* 표현영역과 응용영역
+  * 표현영역은 사용자의 요청을 해석
+  * 응용영역은 사용자가 실제 원하는 기능을 제공
+  * 표현영역은 응용 서비스가 요구하는 형식으로 사용자 요청을 변환
+  * 응용영역은 표현영역에 의존하지 않는다.
+  
+* 응용 서비스 구현
+  * 응용 서비스 클래스 내에서 2~3개의 기능을 구현하자(범균님 추천)
+  * 별도 클래스에 로직을 구현해서 코드 중복을 방지
+    ```java
+    public final class MemberServiceHelper {
+        public static Member findExistinggMember(MemberRepository repo, String id){
+            ...
+        }
+    }
+
+    import static com.myshop.member.application.MemberServiceHelper.*;
+    ```
+* 응용 서비스는 표현영역에 필요한 데이터만 리턴
+  * 로직의 응집도를 높이는 확실한 방법
+* 표현영역에 의존하지 않기
+  * 표현 영역과 관련된 타입 사용하지 말자.
+    * ex) HttpServletRequest, HttpSession ....
+    * 응용 서비스만 단독으로 테스트 하기 어려움.
+    * 표현 영역이 변경되면 응용 서비스 영역도 변경되어야 한다.
+* 표현영역
+  * 사용자의 세션을 관리한다.
+* 값 검증
+  * 표현영역 : 필수 값, 값의 형식, 범위 등 검증
+  * 응용 서비스 : 데이터의 존재 유무와 같은 논리적 오류 검
+  
+## Chapter 07 - 도메인 서비스
+
+* 여러 애그리거트가 필요한 기능
+  * 한 애그리거트에 억지로 구현하지 말고 도메인 서비스를 별도로 구현해라
+* 도메인 서비스
+  * 응용 영역의 서비스 = 응용로직, 도메인 서비스 = 도메인 로직
+  * 도메인 개념을 명시적으로 드러낼 것. 도메인의 의미가 드러나는 용어를 타입과 메서드로 명명
+    ```java
+    public class DiscountCalculationService {
+        public Money calculateDiscountAmounts(
+            List<OrderLine> orderLines,
+            List<Coupon> coupons,
+            MemberGrade grade){
+            
+            ...
+        }
+    }
+    ```
+  * 도메인 서비스 사용주체는 애그리거트일 수도, 응용서비스 일수도 있다.
+  * 다음과 같이 애그리거트에 도메인 서비스 전달. 전닳하는 것은 응용 서비스의 책임 
+    ```java
+    public class Order{
+        public void calculateAmounts(
+                DiscountCalculateService discountCalculateService, MemberGrade grade){
+            Money discountAmounts = 
+                discountCalculateService.calculateDiscountAmounts(this.orderLines, this.coupons, grade);
+            ...
+        }
+    }
+    ```
+  * 패키지 위치
+    * 도메인 영역에 위치
