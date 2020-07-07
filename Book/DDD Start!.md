@@ -7,7 +7,7 @@
   * 소프트웨어로 해결하고자 하는 문제의 영역
   * ex) 온라인 서점 = 구현해야 할 소프트웨어의 대상
 * 도메인은 다시 여러개의 하위 도메인으로 구성될 수 있다
-    <img src="https://github.com/sangnyyy/TIL/blob/master/images/%ED%95%98%EC%9C%84%EB%8F%84%EB%A9%94%EC%9D%B8.jpg?raw=true" width=300 height=300/>
+    <br/><img src="https://github.com/sangnyyy/TIL/blob/master/images/%ED%95%98%EC%9C%84%EB%8F%84%EB%A9%94%EC%9D%B8.jpg?raw=true" width=300 height=300/>
 * 도메인 모델
   * 특정 도메인을 개념적으로 표현한 것(개념모델 O, 구현모델 X)
   * 도메인 모델을 사용하여, 여러 관계자들이 동일한 모습으로 도메인을 이해할 수 있다.
@@ -48,17 +48,17 @@
 * DIP
   * 인프라스트럭처 계층에 의존하면 테스트의 어려움, 기능 확장의 어려움
   * DIP는 저수준 모듈이 고수준 모듈에 의존하도록 한다. 그 비밀은 추상화 한 인터페이스에 있다.
-    <img src="https://github.com/sangnyyy/TIL/blob/master/images/DIP.jpg?raw=true" width=400 height=300/>
+    <br/><img src="https://github.com/sangnyyy/TIL/blob/master/images/DIP.jpg?raw=true" width=400 height=300/>
   * 저수준 모듈만 바꿔 끼우면 된다. = 확장성
   * Mock 객체를 끼워서 저수준 모듈이 구현되지 않았음에도 테스트를 진행할 수 있다.
   * DIP가 적용된 최종 구조는 다음과 같다.
-    <img src="https://github.com/sangnyyy/TIL/blob/master/images/DIP2.jpg?raw=true" width=400 height=300/>
+    <br/><img src="https://github.com/sangnyyy/TIL/blob/master/images/DIP2.jpg?raw=true" width=400 height=300/>
 * 애그리거트
   * 관련 객체(엔티티, 벨류)를 하나로 묶은 군집
     * ex) 주문 도메인 = {주문, 배송, 주문자, 주문목록, 결제금액 ....}
   * 루트 엔티티를 갖는다.
     * 이를 통해, 간접적으로 다른 엔티티나 벨류 객체에 접근
-      <img src="https://github.com/sangnyyy/TIL/blob/master/images/aggregate.jpg?raw=true" width=400 height=300/>
+      <br/><img src="https://github.com/sangnyyy/TIL/blob/master/images/aggregate.jpg?raw=true" width=400 height=300/>
 
 ## Chapter 03 - 애그리거트
 
@@ -69,7 +69,7 @@
     * 대부분 함께 생성되고, 함께 제거된다.
   * 다른 애그리거트를 관리하지 않는다.
     * ex) 상품과 리뷰
-      <img src="https://github.com/sangnyyy/TIL/blob/master/images/aggregate2.jpg?raw=true" width=400 height=200/>
+      <br/><img src="https://github.com/sangnyyy/TIL/blob/master/images/aggregate2.jpg?raw=true" width=400 height=200/>
   * 애그리거트 루트
     * 군집에 속한 객체가 일관된 상태를 갖기 위해 관리할 주체
     * 다른 객체가 애그리거트 내 객체를 직접 변경하면 안된다. 오로지, 애그리거트 루트를 통해 직/간접적 변경(최대한 불변객체로..)
