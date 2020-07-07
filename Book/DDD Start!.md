@@ -84,3 +84,55 @@
   * 애그리거트는 개념적으로 하나이다. 따라서, 리포지터리는 애그리거트 전체를 저장소에 영속화해야 한다.
   * 애그리거트의 상태가 변경되면 모든 변경을 원자적으로 저장소에 반영해야 한다.
 
+## Chapter 04 - 리포지터리와 모델 구현
+
+* AttributeConverter를 이용한 밸류 매핑 처리
+    ```java
+    public interface AttributeConverter<X, Y> {
+        public Y convertToDatabaseColumn (X attribute);
+        public X convertToEntityAttribute (Y dbData);
+    }
+    ```
+    ```java
+    public class Order {  
+        @Column(name = "total_amounts")
+        @Convert(converter = MoneyConverter.class)
+        private Money totalAmounts;
+    }
+    ```
+
+* 밸류 컬렉션을 별도 테이블로 매핑
+  * @ElementCollection과 @CollectionTable 사용
+  <br/><img src="https://github.com/sangnyyy/TIL/blob/master/images/valuecollection.jpg?raw=true" width=400 height=200/>
+  
+    ```java
+    @Entity
+    @Table(name = "purchase_order")
+    public class Order{
+        @ElementCollection
+        @CollectionTable(name = "order_line"),
+                        joinColumns = @JoinColumn(name = "order_number"))
+        @OrderColumn(name = "line_idx")
+        private List<OrderLine> orderLines;
+    }
+    ```
+
+* 별도 테이블에 저장하는 밸류 매핑
+  * @SecondaryTable과 @AttributeOverride를 사용
+  <br/><img src="https://github.com/sangnyyy/TIL/blob/master/images/valuemapping.jpg?raw=true" width=400 height=200/>
+    ```java
+    @Entity
+    @SecondaryTable(
+        name = "article_content",
+        pkJoinColumns = @PrimaryKeyJoinColumn(name = "id")
+    )
+    public class Article{
+        ...
+    
+        @AttributeOverrides({
+            @AttribueOverride(name = "content", column = @Column(table = "article_content")),
+            @AttribueOverride(name = "contentType", column = @Column(table = "article_content"))
+        })
+        private ArticleContent articleContent;
+    }
+    ```
