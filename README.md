@@ -12,6 +12,9 @@
 ### DevOps
 * [Docker란?](https://github.com/sangnyyy/TIL/blob/master/DevOps/Docker%EB%9E%80%3F.md)
 
+### JPA
+* [Orphan](https://github.com/sangnyyy/TIL/blob/master/JPA/Orphan.md)
+
 ### RDB
 * [MySQL Replication](https://github.com/sangnyyy/TIL/blob/master/RDB/MySQL%20%EB%A0%88%ED%94%8C%EB%A6%AC%EC%BC%80%EC%9D%B4%EC%85%98.md)
 
