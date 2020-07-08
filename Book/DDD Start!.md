@@ -205,3 +205,149 @@
     ```
   * 패키지 위치
     * 도메인 영역에 위치
+    
+## Chapter 08 - 애그리거트 트랜잭션 관리
+
+* 애그리거트와 트랜잭션
+  <br/><img src="https://github.com/sangnyyy/TIL/blob/master/images/aggregatetransaction.jpg?raw=true" width=400 height=200/>
+  * 운영자가 배송상태를 변경했고, 직후에 고객이 배송지를 변경하여 애그리거트 일관성이 깨지는 문제가 발생
+  * 해결방법 2가지
+    * 운영자가 배송지 상태를 변경하는 동안 고객이 애그리거트 수정을 할 수 없다.
+    * 운영자가 배송정보를 조회한 이후에 고객이 정보 변경 시, 운영자가 애그리거트를 다시 조회해야한다.
+  * 추가적인 트랜잭션 처리 기법이 필요함!
+  * 선점잠금 (Pessimistic Lock)
+    * 비관적 락
+    * 애그리거트 구함(조회) 시 락을 얻고, 트랜잭션 커밋 시 잠금 해제.
+    * 보통 DBMS가 제공하며, for update 쿼리를 사용.
+    * JPA에선 LockModeType.PESSIMISTIC_WRITE로 전달 후 사용
+        ```java
+        entityManager.find(Order.class, orderNo, LockModeType.PESSIMISTIC_WRITE);
+        ```
+    * 사용자 수가 많을 때, 교착상태에 빠지는 스레드가 더 빠르게 증가하므로 최대 대기 시간(timeout)을 지정하자
+        ```java
+        Map<String, Object> hints = new HashMap<>();
+        hints.put("javax.persistence.lock.timeout", 2000);
+        entityManager.find(Order.class, orderNo, LockModeType.PESSIMISTIC_WRITE, hints);
+        ```
+  * 비선점 잠금 (Optimistic Lock)
+    * 낙관적 락
+    * 실제 DBMS에 반영하는 시점에 변경 가능 여부를 확인하는 방식
+        ```java
+        UPDATE aggtable SET version = version + 1, colx = ?, coly = ?
+        WHERE aggid = ? and version = 현재버전
+        ```
+    * 테이블의 버전 값이 현재 애그리거트의 버전과 동일한 경우에만 데이터를 수정할 수 있다.
+    <br/><img src="https://github.com/sangnyyy/TIL/blob/master/images/optimisticlock.jpg?raw=true" width=400 height=200/>
+    * jpa에서는 @Version 어노테이션을 사용
+        ```java
+        @Entity
+        public class Order{
+            ...
+            @Version
+            private Long version;
+        }
+        ```
+    * 트랜잭션 충돌 시OptimisticLockingFailureException 발생
+    * 강제 버전 증가
+      * 루트 엔티티와 연관된 객체가 변경된다면, 엔티티 자체는 바뀌는 것이 없기 때문에 버전값을 갱신하는 문제 발생
+      * 루트 엔티티는 값이 바뀌지 않았지만 일부 값이 바뀌면 논리적으로는 애그리거트는 바뀐 것임.
+      * 따라서, 다음과 같이 엔티티 상태 변경과 상관 없이 강제로 값 증가 처리를 할 수 있다.
+        ```java
+        entityManager.find(Order.class, orderNo, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        ```
+  * 오프라인 선점 잠금
+    * 트랜잭션 범위를 벗어나서 잠금이 필요할 때 사용하는 방식
+    * 여러 트랜잭션에 걸쳐 동시 변경을 막는다.
+    * 첫번째 트랜잭션에서 오프라인 잠금 선점 후 마지막 트랜잭션에서 잠금을 해제한다. 다른 사용자는 잠금을 구할 수 없다.
+    * 또한, 영원히 잠금을 구할 수 없는 상황을 방지하기 위해 타임아웃을 줘야 한다.
+    * 직접 코드구현 및 DB사용을 통해서 만들어야 한다.
+        ```java
+        public interface LockManager {
+            LockId tryLock(String type, String id);
+            void checkLock(LockId lockId);
+            void releaseLock(LockId lockId);
+            void extendLockExpiration(LockId lockId, long inc);
+        }
+        ``` 
+
+## Chapter 09 - 도메인 모델과 BOUNDED CONTEXT
+* 도메인 모델과 경계
+  * 빠지기 쉬운 함정이 도메인을 완벽하게 표현하는 단일 모델을 만드는 시도
+    * 도메인은 여러 하위 도메인으로 다시 구분되기 때문에 단일모델은 좀 어렵다.
+    * 또한, 도메인 마다 같은용어라도 의미가 다를 수 있고 같은 존재처럼 보이지만 다른용어를 쓰기도 한다.
+  * 따라서, 올바른 도메인 모델을 개발하기 위해 하위 도메인마다 모델을 만들어야 한다.
+  * 모델은 특정 컨텍스트(문맥)하에서 완전한 의미를 갖는다.
+    * 구분되는 경계를 갖는 컨텍스트를 BOUNDED CONTEXT라고 한다.
+* BOUNDED CONTEXT
+  * 모델의 경계를 결정
+  * 논리적으로 한개의 모델을 갖는다.
+  * 물리적 시스템으로 도메인 모델은 BOUNDED CONTEXT안에서 도메인을 구현하게 된다.
+  * 하위 도메인과 BOUNDED CONTEXT는 일대일 관계가 아닐 수 있다.
+    <br/><img src="https://github.com/sangnyyy/TIL/blob/master/images/boundedcontext.jpg?raw=true" width=400 height=200/>
+  * 여러 하위 도메인을 하나의 BOUDNDED CONTEXT에서 개발 시 주의 해야할 것은 하위 도메인의 모델이 섞이지 않도록 하는 것
+    * 따라서, 비록 한개의 BOUNDED CONTEXT에서 여러 하위 도메인을 포함하더라도 하위 도메인 마다 구분 되는 패키지를 만들어야 하위 도메인마다
+    BOUNDED CONTEXT를 갖는 효과를 가질 수 있다.
+* BOUNDED CONTEXT 간 관계
+  * 상류 컴포넌트 = 공급자, 하류 컴포넌트 = 고객
+  * 하류 컴포넌트는 상류 서비스의 모델이 자신의 도메인 모델에 영향을 주지 않도록 보호해주는 완충 지대를 만들어야 한다.
+    * 모델이 깨지는 것을 막아 주는 안티코럽션(Anticorruption) 계층이 된다.
+  * 두 BOUNDED CONTEXT가 같은 모델을 공유하는 경우도 있다. 
+    * 공유하는 모델을 공유 커널이라고 부른다.
+    * 장점 = 중복을 줄여준다.
+    * 두 팀이 한 모델을 공유하기 때문에 한팀에서 임의로 모델을 변경해서는 안되고, 두 팀이 밀접한 관계를 유지해야 한다.
+  * 독립 방식(Separate way)
+    * 그냥 서로 통합하지 않는 방식
+    * 통합은 수동으로 이뤄지며, 별도의 시스템을 필요로 할 수 있다. 
+    <br/><img src="https://github.com/sangnyyy/TIL/blob/master/images/separateway.jpg?raw=true" width=700 height=200/>
+* 컨텍스트 맵
+  * 전체 비즈니스를 조망할 수 있는 지도가 필요하다.
+  <br/><img src="https://github.com/sangnyyy/TIL/blob/master/images/contextmap.jpg?raw=true" width=400 height=200/>
+
+## Chapter 10 - 이벤트
+* 시스템 간 강결합의 문제
+  * 반드시 트랜잭션으로 롤백해야 하는 경우가 아닐 수 있다.
+    * ex) 주문 취소 후 환불
+  * 또 다른 문제는 기능을 추가할 때 발생
+    * 트랜잭션 처리가 복잡해지고, 영향을 주는 외부 서비스가 증가한다.
+  * 비동기 이벤트를 써서 결합도를 낮추자.
+* 이벤트 개요
+  * 이벤트 = 과거에 벌어진 어떤 것
+  * 이벤트가 발생했다는 것은 상태의 변경을 의미
+    ex) 주문 취소됨 이벤트 = 주문을 취소 할 때 이메일을 보낸다.
+  * 이벤트 관련 구성요소
+    * 이벤트 생성 주체 --(이벤트)--> 이벤트 디스패처 --(이벤트)--> 이벤트 핸들러
+    * 이벤트 생성 주체
+      * 엔티티, 밸류, 도메인 서비스와 같은 객체
+    * 이벤트 핸들러
+      * 이벤트 생성 주체의 이벤트에 반응
+      * 원하는 기능을 실행
+    * 이벤트 디스패처
+      * 이벤트 생성 주체와 이벤트 핸들러를 연결
+      * 동기 혹은 비동기로 실행
+  * 이벤트의 구성
+    * 이벤트 종류, 이벤트 발생 시간, 추가 데이터 등
+  * 과거에 벌어진 것을 표현하기 때문에 이벤트 이름에는 과거 시제를 사용
+  * 이벤트 핸들러가 데이터가 부족할 경우 DB에서 데이터를 직접 읽어오거나 api를 호출해야 한다.
+  * 이벤트 용도
+    * 트리거
+    * 데이터 동기화
+  * 이벤트 장점
+    * 서로 다른 도메인 로직이 섞이는 것을 방지
+* 이벤트, 핸들러, 디스패처 구현
+  * 생략
+
+# Chapter 11 - CQRS
+* CQRS
+  * 상태를 변경하는 명령(Command)와 상태를 제공하는 조회(Query)를 위한 모델을 분리하는 패턴
+  * 명령 모델에서 상태를 변경하면 이에 해당하는 이벤트가 발생하고, 그 이벤트를 조회 모델에 전달해서 변경내역을 반영한다.
+* 장단점
+  * 장점
+    * 명령 모델 구현 시 도메인 자체에 집중(조회 기능을 신경쓰지 않고)
+    * 조회 성능 향상에 유리
+      * 조회 단위로 캐시
+      * 조회에 특화된 쿼리를 사용
+      * 조회 전용 저장소 사용
+  * 단점
+    * 구현해야 할 코드가 더 많다.
+    * 더 많은 기술을 필요로 한다.
+  * 트래픽이 많을 때 고려해볼 수 있다.
